@@ -1,7 +1,7 @@
 package com.luxoft.datastructures.list;
 
 // Abstract Data Type
-public interface List {
+public interface  List {
     // add value to the end of the list
     void add(Object value);
 
