@@ -1,32 +1,36 @@
 package com.luxoft.datastructures.list;
 
+import com.luxoft.Iterator.Collection;
+import com.luxoft.Iterator.Iterator;
+
 import java.sql.SQLOutput;
 import java.util.StringJoiner;
 
-public class LinkedList implements List{
+public class LinkedList implements List, Collection {
 
-    Node head;
-    Node tail;
-    int size = 0;
+    private Node head;
+    private Node tail;
+    private int size = 0;
 
     @Override
     public void add(Object value) {
-        if(isEmpty()) {
-            Node newNode = new Node(value);
-            head = tail = newNode;
-        } else {
-            Node newNode = new Node(value);
-            newNode.setPrev(tail);
-            tail.setNext(newNode);
-            tail = newNode;
-        }
-        size++;
+        add(value, size);
     }
 
     @Override
     public void add(Object value, int index) {
+        if(isEmpty()) {
+            Node newNode = new Node(value);
+            head = tail = newNode;
+            size++;
+            return;
+        }
+
         if (index == size) {
-            add(value);
+            Node newNode = new Node(value);
+            newNode.setPrev(tail);
+            tail.setNext(newNode);
+            tail = newNode;
         } else {
             Node newNode = new Node(value);
             Node current = head;
@@ -35,8 +39,8 @@ public class LinkedList implements List{
             }
             newNode.setNext(current.getNext());
             newNode.setPrev(current);
-            size++;
         }
+        size++;
     }
 
     @Override
@@ -173,4 +177,58 @@ public class LinkedList implements List{
 
         return stringJoiner.toString();
     }
+
+    @Override
+    public Iterator getIterator() {
+        return new linkedIterator();
+    }
+
+    private class linkedIterator implements Iterator {
+        private int index;
+
+        @Override
+        public boolean hasNext() {
+            if(index < size){
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            return get(index++);
+        }
+    }
+
+
+    private class Node{
+        private Object value;
+        private Node next;
+        private Node prev;
+
+        Node(Object value){
+            this.value = value;
+        }
+
+        public void setNext(Node next) {
+            this.next = next;
+        }
+        public void setPrev(Node prev) {
+            this.prev = prev;
+        }
+        public void setValue(Object value) {
+            this.value = value;
+        }
+
+        public Node getNext(){
+            return next;
+        }
+        public Node getPrev(){
+            return prev;
+        }
+        public Object getValue(){
+            return value;
+        }
+    }
+
 }

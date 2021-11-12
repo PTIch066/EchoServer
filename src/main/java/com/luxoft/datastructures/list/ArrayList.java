@@ -1,6 +1,9 @@
 package com.luxoft.datastructures.list;
 
-public class ArrayList implements List {
+import com.luxoft.Iterator.Collection;
+import com.luxoft.Iterator.Iterator;
+
+public class ArrayList implements List, Collection {
     private Object[] array;
     private int size = 0;
 
@@ -10,11 +13,7 @@ public class ArrayList implements List {
 
     @Override
     public void add(Object value) {
-        if (size == array.length-1) {
-            makeArray();
-        }
-        array[size] = value;
-        size++;
+        add(value, size);
     }
 
     @Override
@@ -130,4 +129,28 @@ public class ArrayList implements List {
         }
         array = newArray;
     }
+
+    @Override
+    public Iterator getIterator() {
+        return new ArrayIterator();
+    }
+
+    private class ArrayIterator implements Iterator {
+
+        private int index;
+
+        @Override
+        public boolean hasNext() {
+            if(index < size){
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            return get(index++);
+        }
+    }
+
 }
