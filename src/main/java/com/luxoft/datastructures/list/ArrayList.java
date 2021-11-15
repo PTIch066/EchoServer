@@ -1,69 +1,70 @@
 package com.luxoft.datastructures.list;
 
-import com.luxoft.Iterator.Collection;
-import com.luxoft.Iterator.Iterator;
+import java.util.Iterator;
+import java.util.StringJoiner;
 
-public class ArrayList implements List, Collection {
-    private Object[] array;
+public class ArrayList<T> implements List<T> {
+    private T[] array;
     private int size = 0;
 
-    ArrayList(){
-        array = new Object[10];
+    ArrayList() {
+        array = (T[]) new Object[10];
     }
 
     @Override
-    public void add(Object value) {
+    public void add(T value) {
         add(value, size);
     }
 
     @Override
-    public void add(Object value, int index) {
-        if (index+1 == array.length-1) {
-            makeArray();
+    public void add(T value, int index) {
+        verifyIsNull(value);
+        verifyIndexBelowZero(index);
+        if (index > size) {
+            throw new IndexOutOfBoundsException("Your index is bigger than available size");
         }
-        if(index > size){
-            throw new IndexOutOfBoundsException("incorrect index");
+        if (size == array.length) {
+            resizeArray();
         }
-        for (int i = index; i < array.length-1; i++) {
-            array[i+1]=array[i];
-            array[index] = value;
-        }
+
+        System.arraycopy(array, index, array, index + 1, size - index);
+        array[index] = value;
         size++;
     }
 
     @Override
-    public Object remove(int index) {
-        if(isEmpty()){
-            throw new IllegalStateException("it is empty!");
-        }
-        Object value = array[index];
-        for (int i = index; i < array.length-1; i++) {
-            array[i]=array[i+1];
-        }
-        size--;
+    public T remove(int index) {
+        verifyIndexOutOfSize(index);
+        verifyIndexBelowZero(index);
+        T value = array[index];
+
+        System.arraycopy(array, index + 1, array, index, size - index);
+
+        array[--size] = null;
         return value;
     }
 
     @Override
-    public Object get(int index) {
-        if(index > size-1){
-            throw new IndexOutOfBoundsException("incorrect index");
-        }
+    public T get(int index) {
+        verifyIndexOutOfSize(index);
+        verifyIndexBelowZero(index);
         return array[index];
     }
 
     @Override
-    public Object set(Object value, int index) {
-        if(index > size-1){
-            throw new IndexOutOfBoundsException("incorrect index");
-        }
+    public T set(T value, int index) {
+        verifyIndexOutOfSize(index);
+        verifyIndexBelowZero(index);
+
+        verifyIsNull(value);
+
         array[index] = value;
         return array[index];
     }
 
     @Override
     public void clear() {
-        for(int i = 0; i < array.length;i++){
+        for (int i = 0; i < size; i++) {
             array[i] = null;
         }
         size = 0;
@@ -76,81 +77,95 @@ public class ArrayList implements List, Collection {
 
     @Override
     public boolean isEmpty() {
-        if(size == 0){
-            return true;
-        }
-        return false;
+        return size == 0;
     }
 
     @Override
-    public boolean contains(Object value) {
-        for(int i = 0; i < array.length; i++){
-            if(array[i] == value){
-                return true;
-            }
-        }
-        return false;
+    public boolean contains(T value) {
+        return indexOf(value) != -1;
     }
 
     @Override
-    public int indexOf(Object value) {
-        for(int i = 0; i < array.length; i++){
-            if(array[i] == value){
+    public int indexOf(T value) {
+        verifyIsNull(value);
+        for (int i = 0; i < size; i++) {
+            if (array[i] == value) {
                 return i;
             }
         }
-        return 0;
+        return -1;
     }
 
     @Override
-    public int lastIndexOf(Object value) {
-        for(int i = array.length-1; i >=0; i--){
-            if(array[i] == value){
+    public int lastIndexOf(T value) {
+        verifyIsNull(value);
+        for (int i = size; i >= 0; i--) {
+            if (array[i] == value) {
                 return i;
             }
         }
-        return 0;
+        return -1;
     }
 
     @Override
-    public String toString(){
-        StringBuilder result = new StringBuilder();
-        for(int i =0; array[i] != null; i++){
-            result.append("№ " + i + " = " + array[i] + " " + "\n");
+    public String toString() {
+        if (isEmpty()) {
+            return "";
         }
-        return result.toString();
+
+        StringJoiner stringJoiner = new StringJoiner(", ", "[", "]");
+        for (T value : this) {
+            stringJoiner.add(value.toString());
+        }
+
+        return stringJoiner.toString();
     }
 
-    private void makeArray(){
-        int newSize = (int)(array.length *1.5);
-        Object[] newArray = new Object[newSize];
-        for (int i =0; i < array.length; i++) {
+    private void resizeArray() {
+        int size = (int) (array.length * 1.5);
+        T[] newArray = (T[]) new Object[size];
+        for (int i = 0; i < array.length; i++) {
             newArray[i] = array[i];
         }
         array = newArray;
     }
 
-    @Override
-    public Iterator getIterator() {
-        return new ArrayIterator();
+    private void verifyIndexOutOfSize(int index) {
+        if (index >= size) {
+            throw new IndexOutOfBoundsException("Your index is bigger than available size");
+        }
     }
 
-    private class ArrayIterator implements Iterator {
+    private void verifyIndexBelowZero(int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Your index is below zero");
+        }
+    }
+
+    private void verifyIsNull(T value) {
+        if (value == null) {
+            throw new NullPointerException("You can not add null");
+        }
+    }
+
+    @Override
+    public Iterator iterator() {
+        return new listIterator();
+    }
+
+    private class listIterator implements Iterator {
 
         private int index;
 
         @Override
         public boolean hasNext() {
-            if(index < size){
-                return true;
-            }
-            return false;
+            return index < size;
         }
 
         @Override
-        public Object next() {
-            return get(index++);
+        public T next() {
+            index++;
+            return get(index - 1);
         }
     }
-
 }

@@ -1,116 +1,97 @@
 package com.luxoft.datastructures.list;
 
-import com.luxoft.Iterator.Collection;
-import com.luxoft.Iterator.Iterator;
-
-import java.sql.SQLOutput;
+import java.util.Iterator;
 import java.util.StringJoiner;
 
-public class LinkedList implements List, Collection {
+public class LinkedList<T> implements List<T> {
 
-    private Node head;
-    private Node tail;
+    private Node<T> head;
+    private Node<T> tail;
     private int size = 0;
 
     @Override
-    public void add(Object value) {
+    public void add(T value) {
         add(value, size);
     }
 
     @Override
-    public void add(Object value, int index) {
-        if(isEmpty()) {
-            Node newNode = new Node(value);
-            head = tail = newNode;
-            size++;
-            return;
+    public void add(T value, int index) {
+        verifyIsNull(value);
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Your index is below zero");
+        }
+        if (index > size) {
+            throw new IndexOutOfBoundsException("Your index is bigger than available size");
         }
 
-        if (index == size) {
-            Node newNode = new Node(value);
-            newNode.setPrev(tail);
-            tail.setNext(newNode);
+        Node<T> newNode = new Node<>(value);
+
+        if (isEmpty()) {
+            head = tail = newNode;
+        } else if (index == 0) {
+            head.prev = newNode;
+            head = newNode;
+
+        } else if (index == size) {
+            newNode.prev = tail;
+            tail.next = newNode;
             tail = newNode;
         } else {
-            Node newNode = new Node(value);
-            Node current = head;
-            for (int i = 0; i < index; i++) {
-                current = current.getNext();
-            }
-            newNode.setNext(current.getNext());
-            newNode.setPrev(current);
+            Node<T> current = getNode(index);
+
+            newNode.next = current;
+            newNode.prev = current.prev;
+            (current.prev).next = newNode;
+            current.prev = newNode;
         }
         size++;
     }
 
-    @Override
-    public Object remove(int index) {
-        if(index > size){
-            throw new IndexOutOfBoundsException("incorrect index");
-        }
-        if(size == 1){
-            Node res = head;
+    @Override   public T remove(int index) {
+        verifyBounds(index);
+        Node<T> res = new Node<>(null);
+        if (size == 1) {
+            res = head;
             clear();
-            return res;
+        } else if (index == 0) {
+            res = head;
+            head = head.next;
+            head.prev = null;
+        } else if (index == size - 1) {
+            res = tail;
+            tail = tail.prev;
+            tail.next = null;
+        } else {
+            Node<T> current = getNode(index);
+            current.prev.next = current.next;
+            current.next.prev = current.prev;
         }
-        if(index == 0){
-            Node res = head;
-            head = head.getNext();
-            head.setPrev(null);
-            size--;
-            return res;
-        }
-        if(index == size -1){
-            Node res = tail;
-            tail = tail.getPrev();
-            tail.setNext(null);
-            size--;
-            return res;
-        }
-        Node current = head;
-        for (int i = 0; i < index; i++) {
-            current = current.getNext();
-        }
-        current.getPrev().setNext(current.getNext());
-        current.getNext().setPrev(current.getPrev());
         size--;
-        return current;
+        return res.getValue();
     }
 
     @Override
-    public Object get(int index) {
-        if(index >= size){
-            throw new IndexOutOfBoundsException("incorrect index");
-        }
-        Node current = head;
-        for (int i = 0; i < index; i++) {
-            current = current.getNext();
-        }
+    public T get(int index) {
+        verifyBounds(index);
+        return getNode(index).value;
+    }
+
+    @Override
+    public T set(T value, int index) {
+        verifyIsNull(value);
+        verifyBounds(index);
+        Node<T> current = getNode(index);
+        current.value = value;
+
         return current.getValue();
     }
 
     @Override
-    public Object set(Object value, int index) {
-        if(index > size){
-            throw new IndexOutOfBoundsException("incorrect index");
-        }
-        Node current = head;
-        for (int i = 0; i < index; i++) {
-            current = current.getNext();
-        }
-        current.setValue(value);
-
-        return current;
-    }
-
-    @Override
     public void clear() {
-        Node current = head;
-        while (current != tail){
-            current = current.getNext();
-            current.setPrev(null);
+        for (T value : this) {
+            value = null;
         }
-        head.setNext(null);
+
         size = 0;
     }
 
@@ -125,110 +106,106 @@ public class LinkedList implements List, Collection {
     }
 
     @Override
-    public boolean contains(Object value) {
-        if(isEmpty()){
-            return false;
-        }
-        Node current = head;
-        for (int i = 0; i < size; i++){
-            if (current.getValue() == value) {
-                return true;
-            }
-            current = current.getNext();
-        }
-        return false;
+    public boolean contains(T value) {
+        return indexOf(value) != -1;
     }
 
     @Override
-    public int indexOf(Object value) {
-        Node current = head;
-        for (int i = 0; i < size; i++){
-
-            if (current.getValue() == value) {
+    public int indexOf(T value) {
+        Node<T> current = head;
+        for (int i = 0; i < size; i++) {
+            if (current.value.equals(value)) {
                 return i;
             } else {
-                current = current.getNext();
+                current = current.next;
             }
         }
-        return 0;
+        return -1;
     }
 
     @Override
-    public int lastIndexOf(Object value) {
-        Node current = tail;
-        for (int i = size -1; i >= 0; i--){
-            if (current.getValue() == value) {
+    public int lastIndexOf(T value) {
+        Node<T> current = tail;
+        for (int i = size - 1; i >= 0; i--) {
+            if (current.value.equals(value)) {
                 return i;
             } else {
-                current = current.getPrev();
+                current = current.prev;
             }
         }
-        return 0;
+        return -1;
     }
 
     @Override
     public String toString() {
+        if (isEmpty()) {
+            return "";
+        }
+
         StringJoiner stringJoiner = new StringJoiner(", ", "[", "]");
-        Node current = head;
-        while (current != null) {
-            stringJoiner.add(current.getValue().toString());
-            current = current.getNext();
+        for (T current : this) {
+            stringJoiner.add(String.valueOf(current));
         }
 
         return stringJoiner.toString();
     }
 
+    private void verifyBounds(int index) {
+        if (index >= size) {
+            throw new IndexOutOfBoundsException("Your index is bigger than available size");
+        }
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Your index is below zero");
+        }
+    }
+
+    private void verifyIsNull(T value) {
+        if (value == null) {
+            throw new NullPointerException("You can not add null");
+        }
+    }
+
+    private static class Node<T> {
+        private T value;
+        private Node<T> next;
+        private Node<T> prev;
+
+        Node(T value) {
+            this.value = value;
+        }
+
+        private T getValue() {
+            return value;
+        }
+
+    }
+
+    private Node<T> getNode(int index) {
+        Node<T> current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        return current;
+    }
+
     @Override
-    public Iterator getIterator() {
+    public Iterator<T> iterator() {
         return new linkedIterator();
     }
 
-    private class linkedIterator implements Iterator {
-        private int index;
+    private class linkedIterator implements Iterator<T> {
+        private Node<T> current = head;
 
         @Override
         public boolean hasNext() {
-            if(index < size){
-                return true;
-            }
-            return false;
+            return current != null;
         }
 
         @Override
-        public Object next() {
-            return get(index++);
-        }
-    }
-
-
-    private class Node{
-        private Object value;
-        private Node next;
-        private Node prev;
-
-        Node(Object value){
-            this.value = value;
-        }
-
-        public void setNext(Node next) {
-            this.next = next;
-        }
-        public void setPrev(Node prev) {
-            this.prev = prev;
-        }
-        public void setValue(Object value) {
-            this.value = value;
-        }
-
-        public Node getNext(){
-            return next;
-        }
-        public Node getPrev(){
-            return prev;
-        }
-        public Object getValue(){
+        public T next() {
+            T value = current.value;
+            current = current.next;
             return value;
         }
     }
-
 }
