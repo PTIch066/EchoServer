@@ -352,4 +352,21 @@ public abstract class AbstractListTest {
         assertTrue(iterator.hasNext());
     }
 
+    @DisplayName("test of Iterator Remove")
+    @Test
+    public void testIteratorRemove() {
+        list.add(4);
+        list.add(9);
+        list.add(10);
+        list.add(12);
+
+        Iterator iterator = list.iterator();
+        assertTrue(iterator.hasNext());
+        assertEquals(4, iterator.next());
+        assertEquals(9, iterator.next());
+        iterator.remove();
+        assertEquals(12, iterator.next());
+    }
+
+
 }

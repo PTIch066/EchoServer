@@ -30,8 +30,8 @@ public class LinkedList<T> implements List<T> {
             head = tail = newNode;
         } else if (index == 0) {
             head.prev = newNode;
+            newNode.next = head;
             head = newNode;
-
         } else if (index == size) {
             newNode.prev = tail;
             tail.next = newNode;
@@ -190,21 +190,35 @@ public class LinkedList<T> implements List<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new linkedIterator();
+        return new LinkedIterator();
     }
 
-    private class linkedIterator implements Iterator<T> {
+    private class LinkedIterator implements Iterator<T> {
         private Node<T> current = head;
+        private int index = 0;
+
+        @Override
+        public void remove() {
+
+            if(hasNext()) {
+                current = current.next;
+            } else if (size != 1){
+                current = current.prev;
+            }
+            LinkedList.this.remove(index);
+            index--;
+        }
 
         @Override
         public boolean hasNext() {
-            return current != null;
+            return index < size;
         }
 
         @Override
         public T next() {
             T value = current.value;
             current = current.next;
+            index++;
             return value;
         }
     }

@@ -124,9 +124,7 @@ public class ArrayList<T> implements List<T> {
     private void resizeArray() {
         int size = (int) (array.length * 1.5);
         T[] newArray = (T[]) new Object[size];
-        for (int i = 0; i < array.length; i++) {
-            newArray[i] = array[i];
-        }
+        System.arraycopy(array, 0, newArray, 0, array.length);
         array = newArray;
     }
 
@@ -156,6 +154,7 @@ public class ArrayList<T> implements List<T> {
     private class listIterator implements Iterator {
 
         private int index;
+        private boolean removable;
 
         @Override
         public boolean hasNext() {
@@ -166,6 +165,11 @@ public class ArrayList<T> implements List<T> {
         public T next() {
             index++;
             return get(index - 1);
+        }
+
+        @Override
+        public void remove(){
+            ArrayList.this.remove(index);
         }
     }
 }
